@@ -1,0 +1,13 @@
+#!/bin/bash
+#$ -wd /home1/c/channat/research/classifier/lang/modules
+#$ -N calc_probs
+#$ -pe parallel-onenode 24
+#$ -j y -o /home1/c/channat/research/output/LOGS
+#$ -m eas
+#$ -M channat@seas.upenn.edu
+
+starting_line=$(grep -m2 -n -i python-code-start "$0"|tail -1|awk -F: '{print $1}')
+tail -n +$starting_line "$0" | exec python - "$*"
+exit
+
+#python-code-start
