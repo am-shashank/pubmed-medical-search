@@ -1,7 +1,7 @@
 from srilm import srilm_ppl
 from operator import itemgetter
 import pickle
-from sklearn.metric import confusion_matrix
+# from sklearn.metric import confusion_matrix
 
 def lm_predict(models, test_file, pred_file, top_labels=1):
     with open(pred_file, 'w') as pred:
@@ -28,26 +28,28 @@ def lm_predict(models, test_file, pred_file, top_labels=1):
                         pred.write(",")
                 pred.write("\n")
 
-def lm_predict_xml(models, pickle_file, pred_file, top_labels=1):
+def lm_predict_xml(models, test_file, pred_file, top_labels=1):
     # labelPredictions = []
     # for i in range(top_labels):
     #	labelPredictions.append([])
     with open(pred_file, 'w') as pred:
         with open(test_file, 'r') as test:
 	    abstract = pickle.load(test)
-	    allAbstractText = abstract.findall("AbstractText") 
+	    allAbstractText = abstract.findall("AbstractText")
             for abstractText in allAbstractText:
 		line = abstractText.text
 		actualLabel = None
-`		if "Label" in abstractText.attrib:
+		# print abstractTest.attrib
+		if "Label" in abstractText.attrib:
 			actualLabel = abstractText.attrib["Label"]
+			print actualLabel
                 print "PREDICTING FOR LINE:"
-                print line
+                print line.encode("utf-8","ignore")
                 ppls = []
                 for label, modelFile in models:
                     print label, modelFile
                     try:
-                        ppl = srilm_ppl(modelFile, line)
+                        ppl = srilm_ppl(modelFile, line.encode("utf-8","ignore"))
                     except Exception as e:
                         print "error in calculating ppl"
                         ppl = 1000000
@@ -55,9 +57,11 @@ def lm_predict_xml(models, pickle_file, pred_file, top_labels=1):
                     ppls.append((label, ppl))
                 ppls.sort(key=lambda tup: tup[1])
                 # bestLabel = min(ppls, key=itemgetter(1))[0]
+		if actualLabel is not None:
+			pred.write(actualLabel + ":")
+		else:
+			pred.write(" :")
                 for i in range(0, top_labels):
-		    if actualLabel is not None:
-		    	pred.write(actualLabel + ":")
 		    # labelPredictions[i].append(ppls[i][0])
                     pred.write(ppls[i][0])
                     print "predicted: ", ppls[i][0]
