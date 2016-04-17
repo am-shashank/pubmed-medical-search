@@ -4,7 +4,7 @@
 #$ -pe parallel-onenode 1
 #$ -j y -o /home1/a/agshash/Spring_2016/Independent_Study/nate/output/LOGS
 #$ -m eas
-#$ -M agshash@seas.upenn.edu
+#$ -m n
 starting_line=$(grep -m2 -n -i python-code-start "$0"|tail -1|awk -F: '{print $1}')
 tail -n +$starting_line "$0" | exec python - "$*"
 exit

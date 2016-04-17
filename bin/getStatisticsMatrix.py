@@ -26,6 +26,8 @@ def invertJsonObj(jsonObj):
 	jsondata = json.loads(f.read())
 	# print jsondata
     	inverted_dict = dict((i, k) for k, v in jsondata.items() for i in v)
+
+    # print inverted_dict
     return inverted_dict
 
 def get_statistics(inDir, labelset, inverted_index, numLabels=2):
@@ -66,7 +68,7 @@ def main():
     picoLabels = ["STUDY DESIGN","INTERVENTION","OTHER","OUTCOME MEASURES","PATIENTS", "OTHER_METHOD"]
 
     inverted_dict = invertJsonObj(jsonObj)
-    statistic_dict = get_statistics(inDir, picoLabels, inverted_dict)
+    statistic_dict = get_statistics(inDir, coarseLabels, inverted_dict)
     
     # write dict to file
     # save to file:
