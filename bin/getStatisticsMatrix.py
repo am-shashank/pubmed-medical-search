@@ -33,6 +33,7 @@ def invertJsonObj(jsonObj):
 def get_statistics(inDir, labelset, inverted_index, numLabels=2):
     # create dictionary for labelset
     statistic_dict = {}
+    statistic_dict["FILES"] = 0
     statistic_dict["TOTAL"] = 0
     statistic_dict["STRUCTURED"] = 0
     for label in labelset:
@@ -41,6 +42,7 @@ def get_statistics(inDir, labelset, inverted_index, numLabels=2):
     statistic_dict["UNUSED"] = 0
 
     for predFilePath in absoluteFilePaths(inDir):
+	statistic_dict["FILES"] += 1
         predFile = open(predFilePath)
         for line in predFile:
 	    statistic_dict["TOTAL"] += 1
@@ -63,13 +65,16 @@ def main():
     inDir = argv[0]
     outFile = argv[1]
     jsonObj = argv[2]
-
+    labelType = argv[3]
     coarseLabels = ["BACKGROUND", "CONCLUSIONS", "METHODS", "RESULTS", "OBJECTIVE", "OTHERS"]
     picoLabels = ["STUDY DESIGN","INTERVENTION","OTHER","OUTCOME MEASURES","PATIENTS", "OTHER_METHOD"]
 
     inverted_dict = invertJsonObj(jsonObj)
-    statistic_dict = get_statistics(inDir, coarseLabels, inverted_dict)
-    
+    statistic_dict = {}
+    if labelType == "coarse":
+    	statistic_dict = get_statistics(inDir, coarseLabels, inverted_dict)
+    elif labelType == "pico":
+	statistic_dict = get_statistics(inDir, picoLabels, inverted_dict)
     # write dict to file
     # save to file:
     with open(outFile, 'w') as f:

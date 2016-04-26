@@ -2,7 +2,7 @@
 #$ -wd /home1/a/agshash/Spring_2016/Independent_Study/nate/modules
 #$ -N predict_labels
 #$ -pe parallel-onenode 1
-#$ -j y -o /home1/a/agshash/Spring_2016/Independent_Study/nate/output/LOGS
+#$ -j y -o /nlp/data/agshash/LOGFILES/PRED_COARSE_LOGS
 #$ -m eas
 #$ -m n
 starting_line=$(grep -m2 -n -i python-code-start "$0"|tail -1|awk -F: '{print $1}')

@@ -2,7 +2,7 @@
 #$ -wd /home1/a/agshash/Spring_2016/Independent_Study/nate/modules
 #$ -N create_confusion_matrix
 #$ -pe parallel-onenode 1
-#$ -j y -o /nlp/data/agshash/LOGS
+#$ -j y -o /nlp/data/agshash/LOGFILES/CM_COARSE_LOGS
 #$ -m eas
 #$ -m n
 starting_line=$(grep -m2 -n -i python-code-start "$0"|tail -1|awk -F: '{print $1}')
@@ -48,32 +48,44 @@ def invertJsonObj(jsonObj):
 	list generator of label1
 '''
 def create_cm(inDir, labels, inverted_index, labelCategory, numLabels=2):
-    yPred1 = {}
-    yTrue = {}
-    yPred2 = {}
+    yPred1 = read_or_new_pickle("/nlp/data/agshash/statistics/yPred1.pkl",{})
+    yTrue = read_or_new_pickle("/nlp/data/agshash/statistics/yTrue.pkl",{})
+    yPred2 = read_or_new_pickle("/nlp/data/agshash/statistics/yPred2.pkl",{})
     labelMetrics = {}
-    label1Predictions = []
-    label2Predictions = []
-    actualLabels = []
+    label1Predictions = read_or_new_pickle("/nlp/data/agshash/statistics/label1Predictions.pkl",[])
+    label2Predictions = read_or_new_pickle("/nlp/data/agshash/statistics/label2Predictions.pkl",[])
+    actualLabels =  read_or_new_pickle("/nlp/data/agshash/statistics/actualLabels.pkl",[])
 
     for label in labels:
-	yPred1[label] = [] # for checking only top label
-	yTrue[label] = []
-	yPred2[label] = [] # for checking top 2 labels
+	if label not in yPred1:
+		yPred1[label] = [] # for checking only top label
+	if label not in yTrue:
+		yTrue[label] = []
+	if label not in yPred2:
+		yPred2[label] = [] # for checking top 2 labels
 	labelMetrics[label] = [] # maintain accuracy, precision, recall in the list for each label
 
+    '''
+    Test on smaller subset
+    '''
+    # index = 0;
     for predFilePath in absoluteFilePaths(inDir):
-
+	# print('Predicting for : ' + predFilePath)
+	# index += 1
         predFile = open(predFilePath)
         for line in predFile:
+	    # print('Line : ' + line)
             lineSplit = line.split(":")
-            actual = lineSplit[0].strip()
-            
+            actual = lineSplit[0]
             
 	    if actual != " ":
-		 pred1, pred2 = lineSplit[1].split(",")
-	    	 pred1 = pred1.strip()
-	    	 pred2 = pred2.strip() 
+		 # index += 1
+		 # print('Line : ' + line)
+		 topPreds = lineSplit[1].split(",")
+		 if len(topPreds) != 2:
+		 	continue
+	    	 pred1 = topPreds[0].strip()
+	    	 pred2 = topPreds[1].strip() 
 		 if inverted_index.has_key(actual):
            	 	actual = inverted_index[actual]
 		 
@@ -90,15 +102,31 @@ def create_cm(inDir, labels, inverted_index, labelCategory, numLabels=2):
 				yPred1[label].append(1)
 			else:
 				yPred1[label].append(0)
-			if pred1 == label or pred2 == label:
+			if pred1 == actual or pred2 == label:
 				yPred2[label].append(1)
 			else:
 				yPred2[label].append(0)
 
+	# print('---------------------------------------------------------------')
+	# print('---------------------------------------------------------------')
+	'''
+	Test on smaller subset
+	if index >= 20:
+	    break
+	'''
 
-		 # print "Actual : " + actual + " Pred1 : " + pred1 + " Pred2 : " + pred2		 
+    # print('---------------------------------------------------------------')
+    # print('---------------------------------------------------------------')
+    # print('Co-occurence Data')
+    # print('Actual Labels ' + ','.join(actualLabels))
+    # print('Label 1 Predictions ' + ','.join(label1Predictions))
+    # print('Label 2 Predictions ' + ','.join(label2Predictions))
     plot_cm("/nlp/data/agshash/cm_"+labelCategory+"_co_occurence", "Co-occurence of "+labelCategory+" Labels", label1Predictions, label2Predictions, labels)
     for label in labels:
+	# print('Label : ' + label)
+	# print('List of yTrue ' + ','.join(str(x) for x in yTrue[label]))
+	# print('List of yPred1 ' + ','.join(str(x) for x in yPred1[label]))
+	# print('List of yPred2 ' + ','.join(str(x) for x in yPred2[label]))
 	cmTopLabel = confusion_matrix(yTrue[label], yPred1[label])
 	cmTop2Labels = confusion_matrix(yTrue[label], yPred2[label])	
    	labelMetrics[label].append( getAccuracy(cmTopLabel) )
@@ -107,8 +135,19 @@ def create_cm(inDir, labels, inverted_index, labelCategory, numLabels=2):
 	labelMetrics[label].append( getAccuracy(cmTop2Labels) )
 	labelMetrics[label].append( getPrecision(cmTop2Labels) )
 	labelMetrics[label].append( getRecall(cmTop2Labels) )
-    writeDictToFile("/nlp/data/agshash/cm_"+labelCategory+"_acc_prec_recall.txt", labelMetrics)
-    return yPred1
+	# print('---------------------------------------------------------------')
+    	# print('---------------------------------------------------------------')
+
+    // check-point results   
+    writeDictToFile("/nlp/data/agshash/statistics/cm_"+labelCategory+"_acc_prec_recall.txt", labelMetrics)
+    pickle.dump(yPred1, open("/nlp/data/agshash/statistics/yPred1.pkl","wb"))
+    pickle.dump(yTrue, open("/nlp/data/agshash/statistics/yTrue.pkl", "wb"))
+    pickle.dump(yPred2, open("/nlp/data/agshash/statistics/yPred2.pkl","wb"))
+    pickle.dump(label1Predictions, open("/nlp/data/agshash/statistics/label1Predictions.pkl", "wb"))
+    pickle.dump(label2Predictions, open("/nlp/data/agshash/statistics/label2Predictions.pkl","wb"))
+
+    # print('Len of Labels - ' + labelCategory + ' is : ' + str(len(label1Predictions)))
+    return label1Predictions 
     # writeDictToFile(l("/nlp/data/agshash/cm_coarse_cooccurence.txt", label1AccPredictions)
 
 def getAccuracy(npMat):
@@ -123,7 +162,9 @@ def getRecall(npMat):
 def create_all_cm(picoDir, picoLabels, picoInvertedIndex, coarseDir, coarseLabels, coarseInvertedIndex):
     picoPred1 = create_cm(picoDir, picoLabels, picoInvertedIndex, "pico")
     coarsePred1 = create_cm(coarseDir, coarseLabels, coarseInvertedIndex, "coarse")
-    plot_cm("/nlp/data/agshash/cm_coarse_pico_co_occurence", "Co-occurence of top pico and coarse Labels", picoPred1, coarsePred1, coarseLabels + picoLabels)
+    print 'Len of picoPred1 : ' + str(len(picoPred1))
+    print 'Len of coarsePred1 : ' + str(len(coarsePred1))
+    # plot_cm("/nlp/data/agshash/cm_coarse_pico_co_occurence", "Co-occurence of top pico and coarse Labels", picoPred1, coarsePred1, coarseLabels + picoLabels)
 
 
 # write dict to file
@@ -164,6 +205,14 @@ def plot_confusion_matrix(cm, labels, title='Confusion matrix', cmap=plt.cm.Blue
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
 
+
+def read_or_new_pickle(path, default):
+    try:
+        foo = pickle.load(open(path, "rb"))
+    except StandardError:
+        foo = default
+        pickle.dump(foo, open(path, "wb"))
+    return foo
 
 def main():
     coarseLabels = ["BACKGROUND", "CONCLUSIONS",
