@@ -1,4 +1,4 @@
-# !/bin/bash
+'''# !/bin/bash
 #$ -wd /home1/a/agshash/Spring_2016/Independent_Study/nate/modules
 #$ -N create_confusion_matrix
 #$ -pe parallel-onenode 1
@@ -9,7 +9,7 @@ starting_line=$(grep -m2 -n -i python-code-start "$0"|tail -1|awk -F: '{print $1
 tail -n +$starting_line "$0" | exec python - "$*"
 exit
 
-
+'''
 #python-code-start
 from sklearn.metrics import confusion_matrix
 import pickle
@@ -121,7 +121,7 @@ def create_cm(inDir, labels, inverted_index, labelCategory, numLabels=2):
     # print('Actual Labels ' + ','.join(actualLabels))
     # print('Label 1 Predictions ' + ','.join(label1Predictions))
     # print('Label 2 Predictions ' + ','.join(label2Predictions))
-    plot_cm("/nlp/data/agshash/cm_"+labelCategory+"_co_occurence", "Co-occurence of "+labelCategory+" Labels", label1Predictions, label2Predictions, labels)
+    plot_cm("/nlp/data/agshash/statistics/cm_"+labelCategory+"_co_occurence", "Co-occurence of "+labelCategory+" Labels", label1Predictions, label2Predictions, labels)
     for label in labels:
 	# print('Label : ' + label)
 	# print('List of yTrue ' + ','.join(str(x) for x in yTrue[label]))
@@ -138,7 +138,7 @@ def create_cm(inDir, labels, inverted_index, labelCategory, numLabels=2):
 	# print('---------------------------------------------------------------')
     	# print('---------------------------------------------------------------')
 
-    // check-point results   
+    # check-point results   
     writeDictToFile("/nlp/data/agshash/statistics/cm_"+labelCategory+"_acc_prec_recall.txt", labelMetrics)
     pickle.dump(yPred1, open("/nlp/data/agshash/statistics/yPred1.pkl","wb"))
     pickle.dump(yTrue, open("/nlp/data/agshash/statistics/yTrue.pkl", "wb"))

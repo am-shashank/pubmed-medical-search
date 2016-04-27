@@ -1,13 +1,13 @@
-# !/bin/bash
+'''# !/bin/bash
 #$ -wd /home1/a/agshash/Spring_2016/Independent_Study/nate/modules
 #$ -N create_confusion_matrix
 #$ -pe parallel-onenode 1
-#$ -j y -o /home1/a/agshash/Spring_2016/Independent_Study/nate/output/LOGS
+#$ -j y -o /nlp/data/agshash/LOGFILES/TEST_STATS
 #$ -m eas
-#$ -M agshash@seas.upenn.edu
+#$ -M n 
 starting_line=$(grep -m2 -n -i python-code-start "$0"|tail -1|awk -F: '{print $1}')
 tail -n +$starting_line "$0" | exec python - "$*"
-exit
+exit'''
 
 #python-code-start
 import pickle

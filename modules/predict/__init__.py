@@ -43,31 +43,34 @@ def lm_predict_xml(models, test_file, pred_file, top_labels=1):
 		if "Label" in abstractText.attrib:
 			actualLabel = abstractText.attrib["Label"]
 			print actualLabel
-                print "PREDICTING FOR LINE:"
-                print line.encode("utf-8","ignore")
-                ppls = []
-                for label, modelFile in models:
-                    print label, modelFile
-                    try:
-                        ppl = srilm_ppl(modelFile, line.encode("utf-8","ignore"))
-                    except Exception as e:
-                        print "error in calculating ppl"
-                        ppl = 1000000
-                    print ppl
-                    ppls.append((label, ppl))
-                ppls.sort(key=lambda tup: tup[1])
-                # bestLabel = min(ppls, key=itemgetter(1))[0]
-		if actualLabel is not None:
-			pred.write(actualLabel + ":")
-		else:
-			pred.write(" :")
-                for i in range(0, top_labels):
-		    # labelPredictions[i].append(ppls[i][0])
-                    pred.write(ppls[i][0])
-                    print "predicted: ", ppls[i][0]
-                    if i < top_labels - 1:
-                        pred.write(",")
-                pred.write("\n")
+		if line is not None:
+			# print "PREDICTING FOR LINE:"
+			# print line.encode("utf-8","ignore")
+			ppls = []
+			for label, modelFile in models:
+			    print label, modelFile
+			    try:
+				ppl = srilm_ppl(modelFile, line.encode("utf-8","ignore"))
+			    except Exception as e:
+				print "error in calculating ppl"
+				ppl = 1000000
+			    print ppl
+			    ppls.append((label, ppl))
+			ppls.sort(key=lambda tup: tup[1])
+			# bestLabel = min(ppls, key=itemgetter(1))[0]
+			if actualLabel is not None:
+				pred.write(actualLabel + ":")
+			else:
+				pred.write(" :")
+			for i in range(0, top_labels):
+			    # labelPredictions[i].append(ppls[i][0])
+			    pred.write(ppls[i][0])
+			    # print "predicted: ", ppls[i][0]
+			    if i < top_labels - 1:
+				pred.write(",")
+			pred.write("\n")
+		print "------------------------------------------------------------"
+	print "*********************************************************************"
 
 
 def lm_predict_string(models, s):
